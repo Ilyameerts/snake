@@ -1,10 +1,8 @@
+import html
 import random
 import pygame
 
-naam = input("Wat is je naam? ").strip()
-if naam == "":
-    naam = "Speler"
-
+# Lees het record uit een bestand
 try:
     with open("highscore.txt", "r", encoding="utf-8") as bestand:
         record = int(bestand.read())
@@ -13,34 +11,37 @@ except (FileNotFoundError, ValueError):
 
 pygame.init()
 
-CEL = 20
-KOLOMMEN = 30
-RIJEN = 30
-BREEDTE = KOLOMMEN * CEL
-HOOGTE = RIJEN * CEL
-BALK_HOOGTE = 50
+# Instellingen
+WIDTH = 600
+HEIGHT = 600
+CELL = 20
+GRID_W = WIDTH // CELL
+GRID_H = HEIGHT // CELL
+MOVE_DELAY = 120
 
-scherm = pygame.display.set_mode((BREEDTE, HOOGTE + BALK_HOOGTE))
-pygame.display.set_caption("Snake")
-klok = pygame.time.Clock()
+BLACK = (20, 20, 20)
+WHITE = (255, 255, 255)
+PINK = (255, 105, 180)
+DARK_PINK = (230, 70, 150)
+APPLE_GREEN = (50, 205, 50)
 
-ZWART = (25, 25, 25)
-WIT = (240, 240, 240)
-GROEN = (50, 200, 80)
-ROOD = (230, 60, 60)
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Snake Game")
+clock = pygame.time.Clock()
 
-slang = [(15, 15), (14, 15), (13, 15)]
-oude_slang = slang.copy()
-richting = (1, 0)
+# Spelgegevens
+naam = ""
 score = 0
-spel_bezig = True
-game_over = False
-beweging_toegestaan = True
+snake = []
+direction = (1, 0)
+new_direction = direction
+food = None
+timer = 0
+game_state = "start"  # Mogelijke waarden: start, playing, game_over
+running = True
 
-SNELHEID = 120  # Tijd tussen vakjes, in milliseconden
-tijd = 0
-
-toetsen = {
+# Dictionary met de besturing
+controls = {
     pygame.K_UP: (0, -1),
     pygame.K_DOWN: (0, 1),
     pygame.K_LEFT: (-1, 0),
@@ -48,141 +49,192 @@ toetsen = {
 }
 
 
-def maak_eten():
-    """Kies een leeg vakje voor het eten."""
-    lege_vakjes = []
+def random_food(snake_parts):
+    """Kies een leeg vakje voor de appel."""
+    empty_spots = []
 
-    for y in range(RIJEN):
-        for x in range(KOLOMMEN):
-            if (x, y) not in slang:
-                lege_vakjes.append((x, y))
+    for y in range(GRID_H):
+        for x in range(GRID_W):
+            if (x, y) not in snake_parts:
+                empty_spots.append((x, y))
 
-    if len(lege_vakjes) == 0:
+    if not empty_spots:
         return None
 
-    return random.choice(lege_vakjes)
+    return random.choice(empty_spots)
 
 
-def teken_tekst(tekst, grootte, x, y, kleur):
-    """Toon tekst op het scherm."""
-    lettertype = pygame.font.SysFont(None, grootte)
-    afbeelding = lettertype.render(tekst, True, kleur)
-    scherm.blit(afbeelding, (x, y))
+def draw_text(text, size, x, y, color=WHITE):
+    """Toon tekst in het midden van het scherm."""
+    font = pygame.font.SysFont(None, size)
+    image = font.render(text, True, color)
+    screen.blit(image, (x - image.get_width() // 2, y))
 
 
-eten = maak_eten()
+def start_game():
+    """Begin een nieuw spel."""
+    global score, snake, direction, new_direction, food, timer, game_state
 
-while spel_bezig:
-    # Houd het spel op maximaal 60 beelden per seconde.
-    tijd += klok.tick(60)
+    score = 0
+    snake = [
+        (GRID_W // 2, GRID_H // 2),
+        (GRID_W // 2 - 1, GRID_H // 2),
+        (GRID_W // 2 - 2, GRID_H // 2),
+    ]
+    direction = (1, 0)
+    new_direction = direction
+    food = random_food(snake)
+    timer = 0
+    game_state = "playing"
 
-    for gebeurtenis in pygame.event.get():
-        if gebeurtenis.type == pygame.QUIT:
-            spel_bezig = False
 
-        elif gebeurtenis.type == pygame.KEYDOWN:
-            if gebeurtenis.key == pygame.K_ESCAPE:
-                spel_bezig = False
+def save_html_result():
+    """Sla de uitslag op als een HTML-pagina met CSS."""
+    safe_name = html.escape(naam)
 
-            elif not game_over and beweging_toegestaan:
-                if gebeurtenis.key in toetsen:
-                    nieuwe_richting = toetsen[gebeurtenis.key]
-                    omgekeerd = (-richting[0], -richting[1])
+    page = f"""<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Snake-resultaat</title>
+    <style>
+        body {{
+            background: #141414;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 80px;
+        }}
+        .kaart {{
+            display: inline-block;
+            padding: 30px 50px;
+            background: #252525;
+            border: 3px solid #ff69b4;
+            border-radius: 16px;
+        }}
+        h1 {{ color: #ff69b4; }}
+        p {{ font-size: 24px; }}
+    </style>
+</head>
+<body>
+    <div class="kaart">
+        <h1>Snake-resultaat</h1>
+        <p>Speler: {safe_name}</p>
+        <p>Score: {score}</p>
+        <p>Record: {record}</p>
+    </div>
+</body>
+</html>
+"""
 
-                    if nieuwe_richting != omgekeerd:
-                        richting = nieuwe_richting
-                        beweging_toegestaan = False
+    with open("snake_resultaat.html", "w", encoding="utf-8") as bestand:
+        bestand.write(page)
 
-    # Verplaats de slang telkens één vakje.
-    while tijd >= SNELHEID and not game_over:
-        tijd -= SNELHEID
-        oude_slang = slang.copy()
-        beweging_toegestaan = True
 
-        kop_x = slang[0][0] + richting[0]
-        kop_y = slang[0][1] + richting[1]
-        nieuwe_kop = (kop_x, kop_y)
-        eet_eten = nieuwe_kop == eten
+while running:
+    elapsed_time = clock.tick(60)
 
-        # De staart schuift weg wanneer de slang geen eten pakt.
-        lichaam = slang if eet_eten else slang[:-1]
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-        botst_tegen_muur = (
-            kop_x < 0 or kop_x >= KOLOMMEN
-            or kop_y < 0 or kop_y >= RIJEN
-        )
-        botst_tegen_zichzelf = nieuwe_kop in lichaam
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
 
-        if botst_tegen_muur or botst_tegen_zichzelf:
-            game_over = True
-        else:
-            slang.insert(0, nieuwe_kop)
+            elif game_state == "start":
+                if event.key == pygame.K_RETURN and naam.strip():
+                    naam = naam.strip()
+                    start_game()
+                elif event.key == pygame.K_BACKSPACE:
+                    naam = naam[:-1]
+                elif event.unicode.isprintable() and len(naam) < 20:
+                    naam += event.unicode
 
-            if eet_eten:
-                score += 1
+            elif game_state == "playing" and event.key in controls:
+                proposed_direction = controls[event.key]
+                opposite_direction = (-direction[0], -direction[1])
 
-                if score > record:
-                    record = score
-                    with open("highscore.txt", "w", encoding="utf-8") as bestand:
-                        bestand.write(str(record))
+                if proposed_direction != opposite_direction:
+                    new_direction = proposed_direction
 
-                eten = maak_eten()
-                if eten is None:
-                    game_over = True
+            elif game_state == "game_over" and event.key == pygame.K_r:
+                start_game()
+
+    if game_state == "playing":
+        timer += elapsed_time
+
+        if timer >= MOVE_DELAY:
+            timer -= MOVE_DELAY
+            direction = new_direction
+
+            head_x = snake[0][0] + direction[0]
+            head_y = snake[0][1] + direction[1]
+            new_head = (head_x, head_y)
+            eating = new_head == food
+
+            # De staart beweegt weg als de slang niet eet.
+            body_to_check = snake if eating else snake[:-1]
+
+            hit_wall = (
+                head_x < 0 or head_x >= GRID_W
+                or head_y < 0 or head_y >= GRID_H
+            )
+            hit_snake = new_head in body_to_check
+
+            if hit_wall or hit_snake:
+                game_state = "game_over"
+                save_html_result()
             else:
-                slang.pop()
+                snake.insert(0, new_head)
 
-    scherm.fill(ZWART)
+                if eating:
+                    score += 1
 
-    # Bereken hoe ver de slang tussen de vakjes is geschoven.
-    voortgang = min(tijd / SNELHEID, 1)
+                    if score > record:
+                        record = score
+                        with open("highscore.txt", "w", encoding="utf-8") as bestand:
+                            bestand.write(str(record))
 
-    if eten is not None:
-        pygame.draw.rect(
-            scherm,
-            ROOD,
-            (eten[0] * CEL, eten[1] * CEL, CEL, CEL),
-        )
+                    food = random_food(snake)
 
-    # Teken ieder slangdeel tussen zijn oude en nieuwe positie.
-    for index, vakje in enumerate(slang):
-        if index < len(oude_slang):
-            oud_x, oud_y = oude_slang[index]
-            nieuw_x, nieuw_y = vakje
+                    if food is None:
+                        game_state = "game_over"
+                        save_html_result()
+                else:
+                    snake.pop()
 
-            x = oud_x + (nieuw_x - oud_x) * voortgang
-            y = oud_y + (nieuw_y - oud_y) * voortgang
-        else:
-            # Het extra staartdeel verschijnt wanneer de slang eten pakt.
-            x, y = vakje
+    screen.fill(BLACK)
 
-        pygame.draw.rect(
-            scherm,
-            GROEN,
-            (round(x * CEL), round(y * CEL), CEL, CEL),
-        )
+    if game_state == "start":
+        draw_text("SNAKE", 72, WIDTH // 2, 150, PINK)
+        draw_text("Typ je naam en druk op Enter", 34, WIDTH // 2, 250)
+        draw_text(naam + "|", 40, WIDTH // 2, 310, WHITE)
+        draw_text("Gebruik de pijltjestoetsen om te bewegen", 28, WIDTH // 2, 390)
 
-    pygame.draw.rect(
-        scherm,
-        (45, 45, 45),
-        (0, HOOGTE, BREEDTE, BALK_HOOGTE),
-    )
-    teken_tekst(
-        f"{naam} | Score: {score} | Record: {record}",
-        30,
-        10,
-        HOOGTE + 12,
-        WIT,
-    )
+    elif game_state == "playing":
+        if food is not None:
+            pygame.draw.rect(
+                screen,
+                APPLE_GREEN,
+                (food[0] * CELL, food[1] * CELL, CELL, CELL),
+            )
 
-    if game_over:
-        teken_tekst(
-            "Game over! Druk op ESC om te sluiten.",
-            38,
-            90,
-            HOOGTE // 2,
-            WIT,
-        )
+        for index, part in enumerate(snake):
+            color = PINK if index == 0 else DARK_PINK
+            pygame.draw.rect(
+                screen,
+                color,
+                (part[0] * CELL, part[1] * CELL, CELL, CELL),
+            )
+
+        draw_text(f"{naam} | Score: {score} | Record: {record}", 30, WIDTH // 2, 10)
+
+    elif game_state == "game_over":
+        draw_text("Game over!", 64, WIDTH // 2, 210, PINK)
+        draw_text(f"Score: {score}  |  Record: {record}", 36, WIDTH // 2, 290)
+        draw_text("Druk op R om opnieuw te spelen", 30, WIDTH // 2, 370)
+        draw_text("Resultaat opgeslagen in snake_resultaat.html", 24, WIDTH // 2, 420)
 
     pygame.display.flip()
 
