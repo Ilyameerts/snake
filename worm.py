@@ -26,13 +26,13 @@ DARK_PINK = (230, 70, 150)
 APPLE_GREEN = (50, 205, 50)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Snake Game")
+pygame.display.set_caption("worm game")
 clock = pygame.time.Clock()
 
 # Spelgegevens
 naam = ""
 score = 0
-snake = []
+worm = []
 direction = (1, 0)
 new_direction = direction
 food = None
