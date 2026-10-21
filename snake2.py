@@ -49,13 +49,13 @@ controls = {
 }
 
 
-def random_food(snake_parts):
+def random_food(worm_parts):
     """Kies een leeg vakje voor de appel."""
     empty_spots = []
 
     for y in range(GRID_H):
         for x in range(GRID_W):
-            if (x, y) not in snake_parts:
+            if (x, y) not in worm_parts:
                 empty_spots.append((x, y))
 
     if not empty_spots:
@@ -73,17 +73,17 @@ def draw_text(text, size, x, y, color=WHITE):
 
 def start_game():
     """Begin een nieuw spel."""
-    global score, snake, direction, new_direction, food, timer, game_state
+    global score, worm, direction, new_direction, food, timer, game_state
 
     score = 0
-    snake = [
+    worm = [
         (GRID_W // 2, GRID_H // 2),
         (GRID_W // 2 - 1, GRID_H // 2),
         (GRID_W // 2 - 2, GRID_H // 2),
     ]
     direction = (1, 0)
     new_direction = direction
-    food = random_food(snake)
+    food = random_food(worm)
     timer = 0
     game_state = "playing"
 
@@ -96,7 +96,7 @@ def save_html_result():
 <html lang="nl">
 <head>
     <meta charset="UTF-8">
-    <title>Snake-resultaat</title>
+    <title>Worm-resultaat</title>
     <style>
         body {{
             background: #141414;
@@ -118,7 +118,7 @@ def save_html_result():
 </head>
 <body>
     <div class="kaart">
-        <h1>Snake-resultaat</h1>
+        <h1>Worm-resultaat</h1>
         <p>Speler: {safe_name}</p>
         <p>Score: {score}</p>
         <p>Record: {record}</p>
@@ -127,7 +127,7 @@ def save_html_result():
 </html>
 """
 
-    with open("snake_resultaat.html", "w", encoding="utf-8") as bestand:
+    with open("worm_resultaat.html", "w", encoding="utf-8") as bestand:
         bestand.write(page)
 
 
@@ -168,25 +168,25 @@ while running:
             timer -= MOVE_DELAY
             direction = new_direction
 
-            head_x = snake[0][0] + direction[0]
-            head_y = snake[0][1] + direction[1]
+            head_x = worm[0][0] + direction[0]
+            head_y = worm[0][1] + direction[1]
             new_head = (head_x, head_y)
             eating = new_head == food
 
             # De staart beweegt weg als de slang niet eet.
-            body_to_check = snake if eating else snake[:-1]
+            body_to_check = worm if eating else worm[:-1]
 
             hit_wall = (
                 head_x < 0 or head_x >= GRID_W
                 or head_y < 0 or head_y >= GRID_H
             )
-            hit_snake = new_head in body_to_check
+            hit_worm = new_head in body_to_check
 
-            if hit_wall or hit_snake:
+            if hit_wall or hit_worm:
                 game_state = "game_over"
                 save_html_result()
             else:
-                snake.insert(0, new_head)
+                worm.insert(0, new_head)
 
                 if eating:
                     score += 1
@@ -196,18 +196,18 @@ while running:
                         with open("highscore.txt", "w", encoding="utf-8") as bestand:
                             bestand.write(str(record))
 
-                    food = random_food(snake)
+                    food = random_food(worm)
 
                     if food is None:
                         game_state = "game_over"
                         save_html_result()
                 else:
-                    snake.pop()
+                    worm.pop()
 
     screen.fill(BLACK)
 
     if game_state == "start":
-        draw_text("SNAKE", 72, WIDTH // 2, 150, PINK)
+        draw_text("WORM", 72, WIDTH // 2, 150, PINK)
         draw_text("Typ je naam en druk op Enter", 34, WIDTH // 2, 250)
         draw_text(naam + "|", 40, WIDTH // 2, 310, WHITE)
         draw_text("Gebruik de pijltjestoetsen om te bewegen", 28, WIDTH // 2, 390)
@@ -220,7 +220,7 @@ while running:
                 (food[0] * CELL, food[1] * CELL, CELL, CELL),
             )
 
-        for index, part in enumerate(snake):
+        for index, part in enumerate(worm):
             color = PINK if index == 0 else DARK_PINK
             pygame.draw.rect(
                 screen,
@@ -234,7 +234,7 @@ while running:
         draw_text("Game over!", 64, WIDTH // 2, 210, PINK)
         draw_text(f"Score: {score}  |  Record: {record}", 36, WIDTH // 2, 290)
         draw_text("Druk op R om opnieuw te spelen", 30, WIDTH // 2, 370)
-        draw_text("Resultaat opgeslagen in snake_resultaat.html", 24, WIDTH // 2, 420)
+        draw_text("Resultaat opgeslagen in worm_resultaat.html", 24, WIDTH // 2, 420)
 
     pygame.display.flip()
 
