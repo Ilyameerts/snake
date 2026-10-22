@@ -12,7 +12,7 @@ except (FileNotFoundError, ValueError):
 pygame.init()
 
 # Instellingen
-WIDTH = 600
+WIDTH = 1255
 HEIGHT = 600
 CELL = 20
 GRID_W = WIDTH // CELL
@@ -27,7 +27,7 @@ APPLE_GREEN = (50, 205, 50)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-start_foto = pygame.image.load("startscherm.jpg").convert()
+start_foto = pygame.image.load("startscherm.png").convert()
 start_foto = pygame.transform.scale(start_foto, (WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
@@ -210,10 +210,10 @@ while running:
 
     if game_state == "start":
         screen.blit(start_foto, (0, 0))
-        draw_text("WORM", 72, WIDTH // 2, 150, PINK)
-        draw_text("Typ je naam en druk op Enter", 34, WIDTH // 2, 250)
-        draw_text(naam + "|", 40, WIDTH // 2, 310, WHITE)
-        draw_text("Gebruik de pijltjestoetsen om te bewegen", 28, WIDTH // 2, 390)
+        draw_text("", 72, WIDTH // 2, 150, PINK)
+        draw_text("Typ je naam en druk op Enter", 20, WIDTH // 2, 240)
+        draw_text(naam + "|", 30, WIDTH // 2, 270, WHITE)
+        draw_text("", 28, WIDTH // 2, 390)
 
     elif game_state == "playing":
         if food is not None:
