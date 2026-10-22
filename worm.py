@@ -26,7 +26,9 @@ DARK_PINK = (230, 70, 150)
 APPLE_GREEN = (50, 205, 50)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("worm game")
+
+start_foto = pygame.image.load("startscherm.jpg").convert()
+start_foto = pygame.transform.scale(start_foto, (WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
 # Spelgegevens
@@ -207,6 +209,7 @@ while running:
     screen.fill(BLACK)
 
     if game_state == "start":
+        screen.blit(start_foto, (0, 0))
         draw_text("WORM", 72, WIDTH // 2, 150, PINK)
         draw_text("Typ je naam en druk op Enter", 34, WIDTH // 2, 250)
         draw_text(naam + "|", 40, WIDTH // 2, 310, WHITE)
