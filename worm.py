@@ -212,7 +212,7 @@ while running:
         screen.blit(start_foto, (0, 0))
         draw_text("", 72, WIDTH // 2, 150, PINK)
         draw_text("Typ je naam en druk op Enter", 20, WIDTH // 2, 240)
-        draw_text(naam + "|", 30, WIDTH // 2, 270, WHITE)
+        draw_text(naam + "|", 30, WIDTH // 2, 270, BLACK)
         draw_text("", 28, WIDTH // 2, 390)
 
     elif game_state == "playing":
