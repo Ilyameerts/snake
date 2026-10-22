@@ -27,9 +27,17 @@ APPLE_GREEN = (50, 205, 50)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
-start_foto = pygame.image.load("startscherm.jpg").convert()
+start_foto = pygame.image.load("startscherm.png").convert()
 start_foto = pygame.transform.scale(start_foto, (WIDTH, HEIGHT))
 clock = pygame.time.Clock()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("worm over")
+clock = pygame.time.Clock()
+
+gameover_foto = pygame.image.load("wormover.png").convert()
+gameover_foto = pygame.transform.scale(gameover_foto, (WIDTH, HEIGHT))
+
+
 
 # Spelgegevens
 naam = ""
@@ -234,10 +242,9 @@ while running:
         draw_text(f"{naam} | Score: {score} | Record: {record}", 30, WIDTH // 2, 10)
 
     elif game_state == "game_over":
-        draw_text("Game over!", 64, WIDTH // 2, 210, PINK)
+        screen.blit(gameover_foto, (0, 0))
         draw_text(f"Score: {score}  |  Record: {record}", 36, WIDTH // 2, 290)
         draw_text("Druk op R om opnieuw te spelen", 30, WIDTH // 2, 370)
-        draw_text("Resultaat opgeslagen in worm_resultaat.html", 24, WIDTH // 2, 420)
 
     pygame.display.flip()
 
