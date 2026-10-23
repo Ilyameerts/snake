@@ -30,6 +30,12 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 start_foto = pygame.image.load("startscherm.png").convert()
 start_foto = pygame.transform.scale(start_foto, (WIDTH, HEIGHT))
 clock = pygame.time.Clock()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("worm over")
+clock = pygame.time.Clock()
+
+gameover_foto = pygame.image.load("wormover.png").convert()
+gameover_foto = pygame.transform.scale(gameover_foto, (WIDTH, HEIGHT))
 
 # Spelgegevens
 naam = ""
@@ -66,7 +72,7 @@ def random_food(worm_parts):
     return random.choice(empty_spots)
 
 
-def draw_text(text, size, x, y, color=WHITE):
+def draw_text(text, size, x, y, color=BLACK):
     """Toon tekst in het midden van het scherm."""
     font = pygame.font.SysFont(None, size)
     image = font.render(text, True, color)
@@ -206,7 +212,7 @@ while running:
                 else:
                     worm.pop()
 
-    screen.fill(BLACK)
+    screen.fill(WHITE)
 
     if game_state == "start":
         screen.blit(start_foto, (0, 0))
@@ -231,13 +237,13 @@ while running:
                 (part[0] * CELL, part[1] * CELL, CELL, CELL),
             )
 
-        draw_text(f"{naam} | Score: {score} | Record: {record}", 30, WIDTH // 2, 10)
+        draw_text(f"{naam} | Score: {score} | Record: {record}", 30, WIDTH // 2, 20)
 
     elif game_state == "game_over":
-        draw_text("Game over!", 64, WIDTH // 2, 210, PINK)
-        draw_text(f"Score: {score}  |  Record: {record}", 36, WIDTH // 2, 290)
-        draw_text("Druk op R om opnieuw te spelen", 30, WIDTH // 2, 370)
-        draw_text("Resultaat opgeslagen in worm_resultaat.html", 24, WIDTH // 2, 420)
+        screen.blit(gameover_foto, (0, 0))
+        draw_text(f"Score: {score}  |  Record: {record}", 36, WIDTH // 2, 240)
+        draw_text("Druk op R om opnieuw te spelen", 25, WIDTH // 2, 420)
+       
 
     pygame.display.flip()
 
