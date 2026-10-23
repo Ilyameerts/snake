@@ -12,14 +12,14 @@ except (FileNotFoundError, ValueError):
 pygame.init()
 
 # Instellingen
-WIDTH = 600
+WIDTH = 1255
 HEIGHT = 600
 CELL = 20
 GRID_W = WIDTH // CELL
 GRID_H = HEIGHT // CELL
 MOVE_DELAY = 120
 
-BLACK = (20, 20, 20)
+BLACK = (20, 20, 20) 
 WHITE = (255, 255, 255)
 PINK = (255, 105, 180)
 DARK_PINK = (230, 70, 150)
@@ -218,10 +218,10 @@ while running:
 
     if game_state == "start":
         screen.blit(start_foto, (0, 0))
-        draw_text("WORM", 72, WIDTH // 2, 150, PINK)
-        draw_text("Typ je naam en druk op Enter", 34, WIDTH // 2, 250)
-        draw_text(naam + "|", 40, WIDTH // 2, 310, WHITE)
-        draw_text("Gebruik de pijltjestoetsen om te bewegen", 28, WIDTH // 2, 390)
+        draw_text("", 72, WIDTH // 2, 150, PINK)
+        draw_text("Typ je naam en druk op Enter", 20, WIDTH // 2, 240)
+        draw_text(naam + "|", 30, WIDTH // 2, 270, BLACK)
+        draw_text("", 28, WIDTH // 2, 390)
 
     elif game_state == "playing":
         if food is not None:
